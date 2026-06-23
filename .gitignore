@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.DS_Store
+.matplotlib/
+wakaranai_log.csv
+.streamlit/secrets.toml
