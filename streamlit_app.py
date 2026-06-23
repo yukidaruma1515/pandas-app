@@ -2,6 +2,7 @@ import os
 import fcntl
 from datetime import datetime
 
+import japanize_matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
@@ -10,7 +11,7 @@ import streamlit as st
 FILE_NAME = "wakaranai_log.csv"
 COLUMNS = ["日時", "わからなかった項目", "理解度"]
 
-plt.rcParams["font.family"] = ["Hiragino Sans", "Yu Gothic", "Meiryo", "sans-serif"]
+japanize_matplotlib.japanize()
 
 topics = [
     "pandasとは",
