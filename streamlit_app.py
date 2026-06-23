@@ -2,16 +2,12 @@ import os
 import fcntl
 from datetime import datetime
 
-import japanize_matplotlib
-import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
 
 FILE_NAME = "wakaranai_log.csv"
 COLUMNS = ["日時", "わからなかった項目", "理解度"]
-
-japanize_matplotlib.japanize()
 
 topics = [
     "pandasとは",
@@ -101,14 +97,9 @@ def create_summary(df):
     return summary.sort_values("補足優先度", ascending=False)
 
 
-def barh_chart(series, title, xlabel):
-    fig, ax = plt.subplots(figsize=(10, 6))
-    series.sort_values().plot(kind="barh", ax=ax)
-    ax.set_title(title)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel("項目")
-    fig.tight_layout()
-    return fig
+def show_bar_chart(series, title):
+    chart_data = series.sort_values(ascending=False).rename(title)
+    st.bar_chart(chart_data)
 
 
 st.set_page_config(page_title="わからないログ", layout="wide")
@@ -178,12 +169,14 @@ with tab_summary:
 
         graph_col1, graph_col2 = st.columns(2)
         with graph_col1:
-            st.pyplot(barh_chart(summary["わからなかった人数"], "わからなかった項目ランキング", "人数"))
+            st.subheader("わからなかった人数ランキング")
+            show_bar_chart(summary["わからなかった人数"], "人数")
         with graph_col2:
-            st.pyplot(barh_chart(summary["補足優先度"], "補足説明が必要そうな項目", "補足優先度"))
+            st.subheader("補足説明が必要そうな項目")
+            show_bar_chart(summary["補足優先度"], "補足優先度")
 
         st.subheader("項目別の平均理解度")
-        st.pyplot(barh_chart(summary["平均理解度"], "項目別の平均理解度", "平均理解度"))
+        show_bar_chart(summary["平均理解度"], "平均理解度")
 
         csv_data = df.to_csv(index=False, encoding="utf-8-sig")
         st.download_button(
