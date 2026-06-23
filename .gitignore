@@ -3,4 +3,5 @@ __pycache__/
 .DS_Store
 .matplotlib/
 wakaranai_log.csv
+lesson2_exercise_log.csv
 .streamlit/secrets.toml

@@ -6,27 +6,20 @@ import pandas as pd
 import streamlit as st
 
 
-FILE_NAME = "wakaranai_log.csv"
+FILE_NAME = "lesson2_exercise_log.csv"
 COLUMNS = ["日時", "わからなかった項目", "理解度"]
 
 topics = [
-    "pandasとは",
-    "SeriesとDataFrame",
-    "DataFrameの作成",
-    "index・columnsの変更",
-    "CSVファイルの読み込み",
-    "head()・tail()による確認",
-    "列・行の抽出",
-    "条件指定による抽出",
-    "loc[]・iloc[]による抽出",
-    "shape・dtypes・info()の確認",
-    "describe()による要約統計量",
-    "value_counts()による度数集計",
-    "groupby()による集計",
-    "matplotlibによる棒グラフ",
-    "matplotlibによるヒストグラム",
-    "matplotlibによる散布図",
-    "演習問題",
+    "演習問題1-1: CSV読み込みとDataFrame表示",
+    "演習問題1-2: 先頭3行の表示",
+    "演習問題2-1: locで国語と英語を抽出",
+    "演習問題2-2: 学年3かつ数学85点以上を抽出",
+    "演習問題2-3: 国語または英語95点以上を抽出",
+    "演習問題3-1: 要約統計量の表示",
+    "演習問題3-2: 欠損値を含む行の表示",
+    "演習問題3-3: 学校別の人数と統計量",
+    "演習問題4-1: 国語のヒストグラム作成",
+    "演習問題4-2: 英語と数学の散布図作成",
     "その他",
 ]
 
@@ -103,15 +96,14 @@ def show_bar_chart(series, title):
 
 
 st.set_page_config(page_title="わからないログ", layout="wide")
-st.title("授業のわからなかった項目 可視化アプリ")
-st.write("Streamlitだけで回答の入力、保存、集計、可視化を行います。")
+st.title("第2回授業 演習問題 わからなかった問題 可視化アプリ")
 
 tab_input, tab_summary = st.tabs(["入力", "集計"])
 
 with tab_input:
     st.subheader("回答入力")
     with st.form("wakaranai_form", clear_on_submit=True):
-        st.write("わからなかった項目にチェックして、理解度を選んでください。")
+        st.write("わからなかった問題にチェックして、理解度を選んでください。")
         topic_levels = {}
 
         for topic in topics:
