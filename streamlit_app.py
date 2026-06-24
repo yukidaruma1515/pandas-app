@@ -6,9 +6,11 @@ import pandas as pd
 import streamlit as st
 
 
+# 回答を保存するCSVファイル名と、CSVで使う列名を決める
 FILE_NAME = "lesson2_exercise_log.csv"
 COLUMNS = ["日時", "わからなかった項目", "理解度"]
 
+# 入力画面に表示する演習問題の一覧
 topics = [
     "演習問題1-1: CSV読み込みとDataFrame表示",
     "演習問題1-2: 先頭3行の表示",
@@ -25,11 +27,13 @@ topics = [
 
 
 def ensure_csv():
+    # CSVファイルがまだない場合は、空のCSVを作成する
     if not os.path.exists(FILE_NAME):
         pd.DataFrame(columns=COLUMNS).to_csv(FILE_NAME, index=False, encoding="utf-8-sig")
 
 
 def normalize_log(df):
+    # CSVに必要な列が足りない場合でも、集計で使える形にそろえる
     for column in COLUMNS:
         if column not in df.columns:
             df[column] = None
@@ -38,6 +42,7 @@ def normalize_log(df):
 
 
 def read_log():
+    # CSVを読み込む。複数人が同時に使っても読み込み中に壊れにくいようロックする
     ensure_csv()
     with open(FILE_NAME, "r", encoding="utf-8-sig") as file:
         fcntl.flock(file, fcntl.LOCK_SH)
@@ -48,6 +53,7 @@ def read_log():
 
 
 def save_answers(topic_levels):
+    # 選択された問題と理解度を、現在時刻と一緒にCSVへ保存する
     ensure_csv()
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     rows = pd.DataFrame(
@@ -58,6 +64,7 @@ def save_answers(topic_levels):
         }
     )
 
+    # 書き込み中に他の人の回答とぶつからないよう、排他ロックを使う
     with open(FILE_NAME, "r+", encoding="utf-8-sig") as file:
         fcntl.flock(file, fcntl.LOCK_EX)
         try:
@@ -71,6 +78,7 @@ def save_answers(topic_levels):
 
 
 def create_summary(df):
+    # 保存された回答データから、人数・平均理解度・優先度を集計する
     df = df.copy()
     df["理解度"] = pd.to_numeric(df["理解度"], errors="coerce")
 
@@ -86,18 +94,22 @@ def create_summary(df):
         }
     ).fillna(0)
 
+    # 人数が多く、平均理解度が低い項目ほど優先度が高くなる
     summary["補足優先度"] = summary["わからなかった人数"] * (6 - summary["平均理解度"])
     return summary.sort_values("補足優先度", ascending=False)
 
 
 def show_bar_chart(series, title):
+    # Streamlit標準の棒グラフで表示する
     chart_data = series.sort_values(ascending=False).rename(title)
     st.bar_chart(chart_data)
 
 
+# アプリ全体のページ設定とタイトル
 st.set_page_config(page_title="わからないログ", layout="wide")
 st.title("第2回授業 演習問題 わからなかった問題 可視化アプリ")
 
+# 入力画面と集計画面をタブで分ける
 tab_input, tab_summary = st.tabs(["入力", "集計"])
 
 with tab_input:
@@ -106,6 +118,7 @@ with tab_input:
         st.write("わからなかった問題にチェックして、理解度を選んでください。")
         topic_levels = {}
 
+        # 各問題について、チェックボックスと理解度スライダーを横並びで表示する
         for topic in topics:
             topic_col, level_col = st.columns([3, 2])
             selected = topic_col.checkbox(topic, key=f"selected_{topic}")
@@ -124,6 +137,7 @@ with tab_input:
 
         submitted = st.form_submit_button("記録する")
 
+    # 記録ボタンが押されたら、選択内容をCSVに保存する
     if submitted:
         if not topic_levels:
             st.warning("項目を1つ以上選んでください。")
@@ -132,15 +146,18 @@ with tab_input:
             st.success("記録しました。")
 
 with tab_summary:
+    # CSVから回答データを読み込み、まだ回答がなければメッセージを表示する
     df = read_log()
 
     if df.empty:
         st.info("まだデータがありません。")
     else:
+        # 回答がある場合は集計表を作り、最も補足が必要そうな項目を取り出す
         summary = create_summary(df)
         top_topic = summary.index[0]
         top_avg = summary.loc[top_topic, "平均理解度"]
 
+        # 重要な数値を画面上部に大きく表示する
         col1, col2, col3 = st.columns(3)
         col1.metric("記録数", len(df))
         col2.metric("最も補足が必要な項目", top_topic)
@@ -152,6 +169,7 @@ with tab_summary:
         st.subheader("自動コメント")
         st.write(f"最も補足が必要そうな項目は「{top_topic}」です。")
 
+        # 平均理解度に応じて、先生向けの簡単なコメントを出す
         if top_avg <= 2:
             st.write("この項目は理解度が低いため、例題を使った説明が必要そうです。")
         elif top_avg <= 3:
@@ -170,6 +188,7 @@ with tab_summary:
         st.subheader("項目別の平均理解度")
         show_bar_chart(summary["平均理解度"], "平均理解度")
 
+        # 集まった回答データをCSVとしてダウンロードできるようにする
         csv_data = df.to_csv(index=False, encoding="utf-8-sig")
         st.download_button(
             "CSVをダウンロード",
