@@ -4,4 +4,5 @@ __pycache__/
 .matplotlib/
 wakaranai_log.csv
 lesson2_exercise_log.csv
+lesson3_exercise_log.csv
 .streamlit/secrets.toml
